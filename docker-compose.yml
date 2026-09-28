@@ -1,0 +1,44 @@
+services:
+  db:
+    image: postgres:16
+    container_name: MambaSoft-db
+    restart: unless-stopped
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=MambaSoft
+    ports:
+      - "5432:5432"
+    volumes:
+      - db_data:/var/lib/postgresql/data
+  
+  backend:
+    build:                                                                         
+      context: ./backend/MambaSoft.api
+      dockerfile: Dockerfile
+    container_name: MambaSoft-backend
+    restart: unless-stopped
+
+    depends_on:
+      - db
+    
+    environment:
+      - ConnectionStrings__DefaultConnection=Host=db;Port=5432;Database=MambaSoft;Username=postgres;Password=postgres
+      - ASPNETCORE_ENVIRONMENT=Development
+    
+    ports:
+      - "5000:8080"
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: MambaSoft-frontend
+    restart: unless-stopped
+    depends_on: 
+      - backend
+    ports:
+      - "5173:5173"
+
+volumes:
+  db_data:
