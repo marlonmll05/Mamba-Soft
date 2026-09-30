@@ -30,14 +30,28 @@ public class EmpleadosController: ControllerBase
     public async Task<IActionResult> ObtenerEmpleado(int id)
     {
         var empleado = await _appdbcontext.Empleado.FindAsync(id);
+
+        if (empleado == null)
+        {
+            return NotFound();
+        }
+
         return Ok(empleado);
     }
 
     [HttpPost]
     public async Task<ActionResult<Empleado>> CrearEmpleado(Empleado empleado)
-    {
+    {   
+        var yaExiste = await _appdbcontext.Empleado.AnyAsync(e => e.Telefono == empleado.Telefono);
+        
+        if (yaExiste)
+        {
+            return BadRequest("Ya existe un empleado con este numero de telefono");
+        }
 
         _appdbcontext.Empleado.Add(empleado);
+
+
         await _appdbcontext.SaveChangesAsync();
 
         return Ok(empleado);
@@ -78,6 +92,8 @@ public class EmpleadosController: ControllerBase
         }
 
         _appdbcontext.Empleado.Remove(empleado);
+
+        await _appdbcontext.SaveChangesAsync();
                 
         return NoContent();
     }
